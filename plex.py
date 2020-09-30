@@ -37,11 +37,13 @@ def t_newline(t):
     r'\n+'
     t.lexer.lineno += len(t.value)
 
+
 def t_error(t):
     raise ValueError(f'Invalid character at position {t.lexpos}')
 
 
 lexer = lex.lex()
+
 
 def token_list_from_text(text):
     lexer.input(text)
@@ -52,6 +54,7 @@ def token_list_from_text(text):
             break
         result.append(tok)
     return result
+
 
 def token_list_from_file(inputfile):
     with open(inputfile, 'r') as file:

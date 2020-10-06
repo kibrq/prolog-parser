@@ -15,6 +15,7 @@ class Parser:
 
     DEFINITIONS = 'parse_definitions'
     DEFINITION = 'parse_definition'
+    DEF1, DEF2 = 'parse_definition1', 'parse_definition2'
     HEAD = 'parse_head'
     BODY = 'parse_body'
     EXP, EXP1, EXP2, EXP3 = 'parse_exp', 'parse_exp1', 'parse_exp2', 'parse_exp3'
@@ -72,6 +73,14 @@ class Parser:
         return self.parse_nonterminal(self.DEFINITIONS)
 
     def parse_definition(self):
+        return self.parse_alt([self.DEF1, self.DEF2])
+
+    def parse_definition1(self):
+        if not self.parse_nonterminal(self.HEAD):
+            return False
+        return self.parse_terminal(self.DOT)
+
+    def parse_definition2(self):
         if not self.parse_nonterminal(self.HEAD):
             return False
         if not self.parse_terminal(self.CORKSCREW):
@@ -118,5 +127,7 @@ class Parser:
         if not self.parse_nonterminal(self.EXP):
             return False
         return self.parse_terminal(self.R_PAREN)
+
+
 def parse(tokens):
     return Parser(tokens).execute()

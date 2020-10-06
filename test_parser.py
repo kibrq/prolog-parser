@@ -18,6 +18,8 @@ def test_parser_accept():
     assert ps.parse(plex.token_list_from_text(text))
     text = 'f :- g. g:-t. \n\n\n h :- q.'
     assert ps.parse(plex.token_list_from_text(text))
+    text = 'f.'
+    assert ps.parse(plex.token_list_from_text(text))
 
 def test_parser_reject():
     text = 'f :- .'

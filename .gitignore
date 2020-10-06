@@ -1,5 +1,6 @@
 __pycache__
 *.sig
 *.swp
+*.sig.out
 *.out
 *tab*

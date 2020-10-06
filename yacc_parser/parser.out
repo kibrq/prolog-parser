@@ -1,0 +1,490 @@
+Created by PLY version 3.11 (http://www.dabeaz.com/ply)
+
+Unused terminals:
+
+    LITERAL
+    NUMBER
+
+Grammar
+
+Rule 0     S' -> prog
+Rule 1     prog -> definitions
+Rule 2     prog -> <empty>
+Rule 3     definitions -> definition definitions
+Rule 4     definitions -> definition
+Rule 5     definition -> head DOT
+Rule 6     definition -> head CORKSCREW body DOT
+Rule 7     head -> atom
+Rule 8     atom -> atom_head
+Rule 9     atom -> atom_head atom_args
+Rule 10    atom_head -> ID
+Rule 11    atom_args -> atom_arg atom_args
+Rule 12    atom_args -> atom_arg
+Rule 13    atom_arg -> ID
+Rule 14    atom_arg -> L_PAREN subatom R_PAREN
+Rule 15    subatom -> atom
+Rule 16    subatom -> L_PAREN subatom R_PAREN
+Rule 17    body -> expression
+Rule 18    expression -> term SEMICOL expression
+Rule 19    expression -> term
+Rule 20    term -> factor COMMA term
+Rule 21    term -> factor
+Rule 22    factor -> L_PAREN expression R_PAREN
+Rule 23    factor -> atom
+
+Terminals, with rules where they appear
+
+COMMA                : 20
+CORKSCREW            : 6
+DOT                  : 5 6
+ID                   : 10 13
+LITERAL              : 
+L_PAREN              : 14 16 22
+NUMBER               : 
+R_PAREN              : 14 16 22
+SEMICOL              : 18
+error                : 
+
+Nonterminals, with rules where they appear
+
+atom                 : 7 15 23
+atom_arg             : 11 12
+atom_args            : 9 11
+atom_head            : 8 9
+body                 : 6
+definition           : 3 4
+definitions          : 1 3
+expression           : 17 18 22
+factor               : 20 21
+head                 : 5 6
+prog                 : 0
+subatom              : 14 16
+term                 : 18 19 20
+
+Parsing method: LALR
+
+state 0
+
+    (0) S' -> . prog
+    (1) prog -> . definitions
+    (2) prog -> .
+    (3) definitions -> . definition definitions
+    (4) definitions -> . definition
+    (5) definition -> . head DOT
+    (6) definition -> . head CORKSCREW body DOT
+    (7) head -> . atom
+    (8) atom -> . atom_head
+    (9) atom -> . atom_head atom_args
+    (10) atom_head -> . ID
+
+    $end            reduce using rule 2 (prog -> .)
+    ID              shift and go to state 7
+
+    prog                           shift and go to state 1
+    definitions                    shift and go to state 2
+    definition                     shift and go to state 3
+    head                           shift and go to state 4
+    atom                           shift and go to state 5
+    atom_head                      shift and go to state 6
+
+state 1
+
+    (0) S' -> prog .
+
+
+
+state 2
+
+    (1) prog -> definitions .
+
+    $end            reduce using rule 1 (prog -> definitions .)
+
+
+state 3
+
+    (3) definitions -> definition . definitions
+    (4) definitions -> definition .
+    (3) definitions -> . definition definitions
+    (4) definitions -> . definition
+    (5) definition -> . head DOT
+    (6) definition -> . head CORKSCREW body DOT
+    (7) head -> . atom
+    (8) atom -> . atom_head
+    (9) atom -> . atom_head atom_args
+    (10) atom_head -> . ID
+
+    $end            reduce using rule 4 (definitions -> definition .)
+    ID              shift and go to state 7
+
+    definition                     shift and go to state 3
+    definitions                    shift and go to state 8
+    head                           shift and go to state 4
+    atom                           shift and go to state 5
+    atom_head                      shift and go to state 6
+
+state 4
+
+    (5) definition -> head . DOT
+    (6) definition -> head . CORKSCREW body DOT
+
+    DOT             shift and go to state 9
+    CORKSCREW       shift and go to state 10
+
+
+state 5
+
+    (7) head -> atom .
+
+    DOT             reduce using rule 7 (head -> atom .)
+    CORKSCREW       reduce using rule 7 (head -> atom .)
+
+
+state 6
+
+    (8) atom -> atom_head .
+    (9) atom -> atom_head . atom_args
+    (11) atom_args -> . atom_arg atom_args
+    (12) atom_args -> . atom_arg
+    (13) atom_arg -> . ID
+    (14) atom_arg -> . L_PAREN subatom R_PAREN
+
+    DOT             reduce using rule 8 (atom -> atom_head .)
+    CORKSCREW       reduce using rule 8 (atom -> atom_head .)
+    COMMA           reduce using rule 8 (atom -> atom_head .)
+    SEMICOL         reduce using rule 8 (atom -> atom_head .)
+    R_PAREN         reduce using rule 8 (atom -> atom_head .)
+    ID              shift and go to state 13
+    L_PAREN         shift and go to state 14
+
+    atom_args                      shift and go to state 11
+    atom_arg                       shift and go to state 12
+
+state 7
+
+    (10) atom_head -> ID .
+
+    ID              reduce using rule 10 (atom_head -> ID .)
+    L_PAREN         reduce using rule 10 (atom_head -> ID .)
+    DOT             reduce using rule 10 (atom_head -> ID .)
+    CORKSCREW       reduce using rule 10 (atom_head -> ID .)
+    COMMA           reduce using rule 10 (atom_head -> ID .)
+    SEMICOL         reduce using rule 10 (atom_head -> ID .)
+    R_PAREN         reduce using rule 10 (atom_head -> ID .)
+
+
+state 8
+
+    (3) definitions -> definition definitions .
+
+    $end            reduce using rule 3 (definitions -> definition definitions .)
+
+
+state 9
+
+    (5) definition -> head DOT .
+
+    ID              reduce using rule 5 (definition -> head DOT .)
+    $end            reduce using rule 5 (definition -> head DOT .)
+
+
+state 10
+
+    (6) definition -> head CORKSCREW . body DOT
+    (17) body -> . expression
+    (18) expression -> . term SEMICOL expression
+    (19) expression -> . term
+    (20) term -> . factor COMMA term
+    (21) term -> . factor
+    (22) factor -> . L_PAREN expression R_PAREN
+    (23) factor -> . atom
+    (8) atom -> . atom_head
+    (9) atom -> . atom_head atom_args
+    (10) atom_head -> . ID
+
+    L_PAREN         shift and go to state 19
+    ID              shift and go to state 7
+
+    body                           shift and go to state 15
+    expression                     shift and go to state 16
+    term                           shift and go to state 17
+    factor                         shift and go to state 18
+    atom                           shift and go to state 20
+    atom_head                      shift and go to state 6
+
+state 11
+
+    (9) atom -> atom_head atom_args .
+
+    DOT             reduce using rule 9 (atom -> atom_head atom_args .)
+    CORKSCREW       reduce using rule 9 (atom -> atom_head atom_args .)
+    COMMA           reduce using rule 9 (atom -> atom_head atom_args .)
+    SEMICOL         reduce using rule 9 (atom -> atom_head atom_args .)
+    R_PAREN         reduce using rule 9 (atom -> atom_head atom_args .)
+
+
+state 12
+
+    (11) atom_args -> atom_arg . atom_args
+    (12) atom_args -> atom_arg .
+    (11) atom_args -> . atom_arg atom_args
+    (12) atom_args -> . atom_arg
+    (13) atom_arg -> . ID
+    (14) atom_arg -> . L_PAREN subatom R_PAREN
+
+    DOT             reduce using rule 12 (atom_args -> atom_arg .)
+    CORKSCREW       reduce using rule 12 (atom_args -> atom_arg .)
+    COMMA           reduce using rule 12 (atom_args -> atom_arg .)
+    SEMICOL         reduce using rule 12 (atom_args -> atom_arg .)
+    R_PAREN         reduce using rule 12 (atom_args -> atom_arg .)
+    ID              shift and go to state 13
+    L_PAREN         shift and go to state 14
+
+    atom_arg                       shift and go to state 12
+    atom_args                      shift and go to state 21
+
+state 13
+
+    (13) atom_arg -> ID .
+
+    ID              reduce using rule 13 (atom_arg -> ID .)
+    L_PAREN         reduce using rule 13 (atom_arg -> ID .)
+    DOT             reduce using rule 13 (atom_arg -> ID .)
+    CORKSCREW       reduce using rule 13 (atom_arg -> ID .)
+    COMMA           reduce using rule 13 (atom_arg -> ID .)
+    SEMICOL         reduce using rule 13 (atom_arg -> ID .)
+    R_PAREN         reduce using rule 13 (atom_arg -> ID .)
+
+
+state 14
+
+    (14) atom_arg -> L_PAREN . subatom R_PAREN
+    (15) subatom -> . atom
+    (16) subatom -> . L_PAREN subatom R_PAREN
+    (8) atom -> . atom_head
+    (9) atom -> . atom_head atom_args
+    (10) atom_head -> . ID
+
+    L_PAREN         shift and go to state 22
+    ID              shift and go to state 7
+
+    subatom                        shift and go to state 23
+    atom                           shift and go to state 24
+    atom_head                      shift and go to state 6
+
+state 15
+
+    (6) definition -> head CORKSCREW body . DOT
+
+    DOT             shift and go to state 25
+
+
+state 16
+
+    (17) body -> expression .
+
+    DOT             reduce using rule 17 (body -> expression .)
+
+
+state 17
+
+    (18) expression -> term . SEMICOL expression
+    (19) expression -> term .
+
+    SEMICOL         shift and go to state 26
+    DOT             reduce using rule 19 (expression -> term .)
+    R_PAREN         reduce using rule 19 (expression -> term .)
+
+
+state 18
+
+    (20) term -> factor . COMMA term
+    (21) term -> factor .
+
+    COMMA           shift and go to state 27
+    SEMICOL         reduce using rule 21 (term -> factor .)
+    DOT             reduce using rule 21 (term -> factor .)
+    R_PAREN         reduce using rule 21 (term -> factor .)
+
+
+state 19
+
+    (22) factor -> L_PAREN . expression R_PAREN
+    (18) expression -> . term SEMICOL expression
+    (19) expression -> . term
+    (20) term -> . factor COMMA term
+    (21) term -> . factor
+    (22) factor -> . L_PAREN expression R_PAREN
+    (23) factor -> . atom
+    (8) atom -> . atom_head
+    (9) atom -> . atom_head atom_args
+    (10) atom_head -> . ID
+
+    L_PAREN         shift and go to state 19
+    ID              shift and go to state 7
+
+    expression                     shift and go to state 28
+    term                           shift and go to state 17
+    factor                         shift and go to state 18
+    atom                           shift and go to state 20
+    atom_head                      shift and go to state 6
+
+state 20
+
+    (23) factor -> atom .
+
+    COMMA           reduce using rule 23 (factor -> atom .)
+    SEMICOL         reduce using rule 23 (factor -> atom .)
+    DOT             reduce using rule 23 (factor -> atom .)
+    R_PAREN         reduce using rule 23 (factor -> atom .)
+
+
+state 21
+
+    (11) atom_args -> atom_arg atom_args .
+
+    DOT             reduce using rule 11 (atom_args -> atom_arg atom_args .)
+    CORKSCREW       reduce using rule 11 (atom_args -> atom_arg atom_args .)
+    COMMA           reduce using rule 11 (atom_args -> atom_arg atom_args .)
+    SEMICOL         reduce using rule 11 (atom_args -> atom_arg atom_args .)
+    R_PAREN         reduce using rule 11 (atom_args -> atom_arg atom_args .)
+
+
+state 22
+
+    (16) subatom -> L_PAREN . subatom R_PAREN
+    (15) subatom -> . atom
+    (16) subatom -> . L_PAREN subatom R_PAREN
+    (8) atom -> . atom_head
+    (9) atom -> . atom_head atom_args
+    (10) atom_head -> . ID
+
+    L_PAREN         shift and go to state 22
+    ID              shift and go to state 7
+
+    subatom                        shift and go to state 29
+    atom                           shift and go to state 24
+    atom_head                      shift and go to state 6
+
+state 23
+
+    (14) atom_arg -> L_PAREN subatom . R_PAREN
+
+    R_PAREN         shift and go to state 30
+
+
+state 24
+
+    (15) subatom -> atom .
+
+    R_PAREN         reduce using rule 15 (subatom -> atom .)
+
+
+state 25
+
+    (6) definition -> head CORKSCREW body DOT .
+
+    ID              reduce using rule 6 (definition -> head CORKSCREW body DOT .)
+    $end            reduce using rule 6 (definition -> head CORKSCREW body DOT .)
+
+
+state 26
+
+    (18) expression -> term SEMICOL . expression
+    (18) expression -> . term SEMICOL expression
+    (19) expression -> . term
+    (20) term -> . factor COMMA term
+    (21) term -> . factor
+    (22) factor -> . L_PAREN expression R_PAREN
+    (23) factor -> . atom
+    (8) atom -> . atom_head
+    (9) atom -> . atom_head atom_args
+    (10) atom_head -> . ID
+
+    L_PAREN         shift and go to state 19
+    ID              shift and go to state 7
+
+    term                           shift and go to state 17
+    expression                     shift and go to state 31
+    factor                         shift and go to state 18
+    atom                           shift and go to state 20
+    atom_head                      shift and go to state 6
+
+state 27
+
+    (20) term -> factor COMMA . term
+    (20) term -> . factor COMMA term
+    (21) term -> . factor
+    (22) factor -> . L_PAREN expression R_PAREN
+    (23) factor -> . atom
+    (8) atom -> . atom_head
+    (9) atom -> . atom_head atom_args
+    (10) atom_head -> . ID
+
+    L_PAREN         shift and go to state 19
+    ID              shift and go to state 7
+
+    factor                         shift and go to state 18
+    term                           shift and go to state 32
+    atom                           shift and go to state 20
+    atom_head                      shift and go to state 6
+
+state 28
+
+    (22) factor -> L_PAREN expression . R_PAREN
+
+    R_PAREN         shift and go to state 33
+
+
+state 29
+
+    (16) subatom -> L_PAREN subatom . R_PAREN
+
+    R_PAREN         shift and go to state 34
+
+
+state 30
+
+    (14) atom_arg -> L_PAREN subatom R_PAREN .
+
+    ID              reduce using rule 14 (atom_arg -> L_PAREN subatom R_PAREN .)
+    L_PAREN         reduce using rule 14 (atom_arg -> L_PAREN subatom R_PAREN .)
+    DOT             reduce using rule 14 (atom_arg -> L_PAREN subatom R_PAREN .)
+    CORKSCREW       reduce using rule 14 (atom_arg -> L_PAREN subatom R_PAREN .)
+    COMMA           reduce using rule 14 (atom_arg -> L_PAREN subatom R_PAREN .)
+    SEMICOL         reduce using rule 14 (atom_arg -> L_PAREN subatom R_PAREN .)
+    R_PAREN         reduce using rule 14 (atom_arg -> L_PAREN subatom R_PAREN .)
+
+
+state 31
+
+    (18) expression -> term SEMICOL expression .
+
+    DOT             reduce using rule 18 (expression -> term SEMICOL expression .)
+    R_PAREN         reduce using rule 18 (expression -> term SEMICOL expression .)
+
+
+state 32
+
+    (20) term -> factor COMMA term .
+
+    SEMICOL         reduce using rule 20 (term -> factor COMMA term .)
+    DOT             reduce using rule 20 (term -> factor COMMA term .)
+    R_PAREN         reduce using rule 20 (term -> factor COMMA term .)
+
+
+state 33
+
+    (22) factor -> L_PAREN expression R_PAREN .
+
+    COMMA           reduce using rule 22 (factor -> L_PAREN expression R_PAREN .)
+    SEMICOL         reduce using rule 22 (factor -> L_PAREN expression R_PAREN .)
+    DOT             reduce using rule 22 (factor -> L_PAREN expression R_PAREN .)
+    R_PAREN         reduce using rule 22 (factor -> L_PAREN expression R_PAREN .)
+
+
+state 34
+
+    (16) subatom -> L_PAREN subatom R_PAREN .
+
+    R_PAREN         reduce using rule 16 (subatom -> L_PAREN subatom R_PAREN .)
+

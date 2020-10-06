@@ -4,6 +4,8 @@ import plex
 import parser as ps
 
 def test_parser_accept():
+    text = 'f.'
+    assert ps.parse(plex.token_list_from_text(text))
     text = 'f :- g.'
     assert ps.parse(plex.token_list_from_text(text))
     text = 'f :- \n g.'

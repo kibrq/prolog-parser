@@ -29,7 +29,7 @@ def t_NUMBER(t):
 
 
 def t_ID(t):
-    r'[a-zA-Z][a-zA-Z_0-9]*'
+    r'[_a-zA-Z][a-zA-Z_0-9]*'
     return t
 
 

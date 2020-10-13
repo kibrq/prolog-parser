@@ -41,6 +41,22 @@ comma = lexeme(string(','))
 semicol = lexeme(string(';'))
 
 
+def mySepBy(parser, delim, mint):
+    assert mint in [0, 1]
+
+    @generate
+    def separser():
+        if mint == 1:
+            fst = yield parser
+        else:
+            fst = yield optional(parser)
+        if mint == 0 and fst is None:
+            return []
+        snd = yield many(delim >> parser)
+        return [fst] + snd
+    return separser
+
+
 @generate
 def def_module():
     '''Module definition'''
@@ -73,7 +89,8 @@ def array():
 
 
 subarray = atom | var | array
-elems = ((atom | var) + (vdash >> var)) ^ (sepBy(subarray, comma))
+headNtail = (atom | var) + (vdash >> var)
+elems = headNtail ^ (mySepBy(subarray, comma, 0))
 
 atom_head = ident
 
@@ -106,7 +123,7 @@ type_part = (atom | var).parsecmap(lambda x: Type([x]))
 
 @generate
 def subtype():
-    types = yield sepBy(type_part | (lparen >> subtype << rparen).parsecmap(Type), arrow)
+    types = yield mySepBy(type_part | (lparen >> subtype << rparen).parsecmap(Type), arrow, 0)
     return types
 
 
@@ -130,20 +147,10 @@ def ctor_binop(exprs, op):
     return binop
 
 
-
-def mySepBy1(parser, delim):
-    @generate
-    def separser():
-        fst = yield parser
-        snd = yield many(delim >> parser)
-        return [fst] + snd
-    return separser
-
-
 @generate
 def expr():
     '''Expression'''
-    terms = yield mySepBy1(term, semicol)
+    terms = yield mySepBy(term, semicol, 1)
     return ctor_binop(terms, ';')
 
 
@@ -153,13 +160,16 @@ rel_body = expr
 @generate
 def term():
     '''Term'''
-    factors = yield mySepBy1((lparen >> expr << rparen) | atom, comma)
+    factors = yield mySepBy(factor, comma, 1)
     return ctor_binop(factors, ',')
+
+
+factor = (lparen >> expr << rparen) | atom
 
 
 @generate
 def prog():
-    module = yield times(def_module, 0, 1)
+    module = yield optional(def_module)
     types = yield many(def_type)
     relations = yield many(def_rel)
     yield eof()

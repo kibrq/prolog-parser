@@ -1,3 +1,11 @@
+def createRightAssocExpr(exprs, ctor):
+    assert len(exprs) > 0
+    init = exprs[-1]
+    for e in reversed(exprs[:-1]):
+        init = ctor(e, init)
+    return init
+
+
 class Module:
     def __init__(self, name, types, relations):
         self.name = name
@@ -11,24 +19,24 @@ class Module:
 
 
 class TypeDecl:
-    def __init__(self, name, types):
+    def __init__(self, name, typeexpr):
         self.name = name
-        self.types = types
+        self.typeexpr = typeexpr
 
     def __eq__(self, other):
         if not isinstance(other, TypeDecl):
             return False
-        return self.name == other.name and self.types == other.types
+        return self.name == other.name and self.typeexpr == other.typeexpr
 
 
-class Type:
-    def __init__(self, types):
-        self.types = types
+class Arrow:
+    def __init__(self, lhs, rhs):
+        self.lhs, self.rhs = lhs, rhs
 
     def __eq__(self, other):
-        if not isinstance(other, Type):
+        if not isinstance(other, Arrow):
             return False
-        return self.types == other.types
+        return self.lhs == other.lhs and self.rhs == other.rhs
 
 
 class Relation:
@@ -73,7 +81,7 @@ class Variable:
 
 
 class Binop:
-    def __init__(self, lhs, op, rhs):
+    def __init__(self, lhs,  rhs, op):
         self.op = op
         self.lhs, self.rhs = lhs, rhs
 
@@ -87,7 +95,7 @@ class Binop:
 
 
 class ASTPrinter:
-    def __init__(self, printer=print,dindent=4):
+    def __init__(self, printer=print, dindent=4):
         self.indent = 0
         self.printer = printer
         self.dindent = dindent
@@ -114,11 +122,12 @@ class ASTPrinter:
 
     def visit_type_decl(self, type_decl):
         self.__print__(f'TypeDecl {type_decl.name}')
-        self.traverse_list(type_decl.types)
+        self.traverse(type_decl.typeexpr)
 
-    def visit_type(self, type):
-        self.__print__('Type:' if len(type.types) == 1 else 'ArrowType:')
-        self.traverse_list(type.types)
+    def visit_arrow(self, arrow):
+        self.__print__('Arrow:')
+        self.traverse(arrow.lhs)
+        self.traverse(arrow.rhs)
 
     def visit_relation(self, relation):
         self.__print__('Head:')
@@ -151,8 +160,8 @@ class ASTPrinter:
             self.visit_module(node)
         elif isinstance(node, TypeDecl):
             self.visit_node(node, self.visit_type_decl)
-        elif isinstance(node, Type):
-            self.visit_node(node, self.visit_type)
+        elif isinstance(node, Arrow):
+            self.visit_node(node, self.visit_arrow)
         elif isinstance(node, Relation):
             self.visit_node(node, self.visit_relation)
         elif isinstance(node, Atom):

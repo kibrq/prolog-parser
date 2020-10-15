@@ -118,13 +118,12 @@ def def_type():
     return TypeDecl(name, defin)
 
 
-type_part = (atom | var).parsecmap(lambda x: Type([x]))
-
-
 @generate
 def subtype():
-    types = yield mySepBy(type_part | (lparen >> subtype << rparen).parsecmap(Type), arrow, 0)
-    return types
+    types = yield mySepBy(type_part, arrow, 0)
+    return createRightAssocExpr(types, Arrow)
+
+type_part = (atom | var | lparen >> subtype << rparen)
 
 
 @generate
@@ -138,20 +137,11 @@ def def_rel():
 rel_head = atom
 
 
-def ctor_binop(exprs, op):
-    if len(exprs) == 0:
-        return exprs
-    binop = exprs[-1]
-    for exp in reversed(exprs[:-1]):
-        binop = Binop(exp, op, binop)
-    return binop
-
-
 @generate
 def expr():
     '''Expression'''
     terms = yield mySepBy(term, semicol, 1)
-    return ctor_binop(terms, ';')
+    return createRightAssocExpr(terms, lambda x, y : Binop(x, y, ';'))
 
 
 rel_body = expr
@@ -161,7 +151,7 @@ rel_body = expr
 def term():
     '''Term'''
     factors = yield mySepBy(factor, comma, 1)
-    return ctor_binop(factors, ',')
+    return createRightAssocExpr(factors, lambda x, y : Binop(x, y, ','))
 
 
 factor = (lparen >> expr << rparen) | atom

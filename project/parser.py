@@ -262,9 +262,14 @@ def def_op():
 
 @generate
 def program():
-    modulename = yield optional(def_module, '')
-    rest = yield many(def_op ^ def_type ^ def_rel)
-    return Module(modulename, rest)
+    prog = many(def_op ^ def_type ^ def_rel)
+    res = yield def_module + prog ^ prog
+    name, data = '', None
+    if isinstance(res, tuple):
+        name, data = res
+    else:
+        data = res
+    return Module(name, data)
 
 
 def parse(s):

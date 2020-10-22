@@ -1,6 +1,37 @@
 from parsec import *
 from prolog_ast import *
+import functools as ft
 import re
+
+
+class ParserWrapper:
+    def __init__(self, val):
+        self.val = val
+
+    def __iadd__(self, parser):
+        if not self.val:
+            self.val = parser
+        else:
+            self.val = val | parser
+
+
+def createTree(ctor, argc, assoc):
+    def createTree_(elems, init=None):
+        if assoc == 0:
+            if not init:
+                init = elems.pop(0)
+            if len(elems) == 0:
+                return init
+            args = elems[:argc - 1]
+            init = ctor(init, *args)
+            return createTree_(elems[argc - 1:], init)
+        else:
+            if len(elems) == 1:
+                return elems[0]
+            args = elems[:argc - 1]
+            init = createTree_(elems[argc - 1:], init)
+            return ctor(*args, init)
+    return createTree_
 
 
 @generate
@@ -32,6 +63,11 @@ ignore = many(whitespace | comment)
 def lexeme(p): return ignore >> p << ignore  # skip all ignored characters.
 
 
+operatorkw = lexeme(string('operator'))
+modulekw = lexeme(string('module'))
+typekw = lexeme(string('type'))
+
+
 lparen = lexeme(string('('))
 rparen = lexeme(string(')'))
 lbrak = lexeme(string('['))
@@ -47,21 +83,16 @@ comma = lexeme(string(','))
 semicol = lexeme(string(';'))
 
 opsymbols = lexeme(regex(r'[\,\;\-\+\*\&\^\%\$\#\@\!\?\>\<]+'))
-opprior = lexeme(regex(r'[0-9]')).parsecmap(int)
+opprior = lexeme(regex(r'[0-9]+')).parsecmap(int)
 opassoc = lexeme(regex(r'[LR]'))
 
-operatorkw = lexeme(string('operator'))
-modulekw = lexeme(string('module'))
-typekw = lexeme(string('type'))
 
-# comments
-
-
-def separateBy(parser, delim, mint):
+def separateMutableBy(parser, wdelim, mint):
     assert mint in [0, 1]
 
     @generate
     def separser():
+        delim = wdelim.val
         if mint == 1:
             fst = yield parser
         else:
@@ -73,7 +104,11 @@ def separateBy(parser, delim, mint):
     return separser
 
 
-def separateWith(parser, delim, mint):
+def separateBy(parser, delim, mint):
+    return separateMutableBy(parser, ParserWrapper(delim), mint)
+
+
+def separateMutableWith(parser, wdelim, mint):
     assert mint in [0, 1]
 
     def concat(x):
@@ -84,6 +119,10 @@ def separateWith(parser, delim, mint):
 
     @generate
     def separser():
+        delim = wdelim.val
+        if delim is None:
+            alt = parser.parsecmap(lambda x: [x])
+            return alt if mint == 1 else optional(alt, [])
         if mint == 1:
             fst = yield parser
         else:
@@ -92,85 +131,140 @@ def separateWith(parser, delim, mint):
             return []
         snd = yield many(delim + parser).parsecmap(concat)
         return [fst] + snd
-    return separser if delim is not None else parser.parsecmap(lambda x: [x])
+    return separser
 
 
-class ExpressionParser:
-    MAX_PRIOR = 10
-    ASSOC_LEFT, ASSOC_RIGHT = 0, 1
-
-    registered = set()
-    opcombs = [None for i in range(2 * MAX_PRIOR)]
-    termcombs = [None for i in range(2 * MAX_PRIOR + 1)]
-
-    @generate
-    def operator():
-        ((name, prior), assoc) = yield operatorkw >> (opsymbols + opprior + optional(opassoc, 'R')) << dot
-        assoc = ExpressionParser.ASSOC_LEFT if assoc == 'L' else ExpressionParser.ASSOC_RIGHT
-        ExpressionParser.register(name, prior, assoc)
-        return None
-
-    @generate
-    def expr():
-        res = yield ExpressionParser.termcombs[0]
-        return res
-
-    @classmethod
-    def register(cls, name,  prior, assoc):
-        assert prior < cls.MAX_PRIOR
-        assert assoc in [cls.ASSOC_LEFT, cls.ASSOC_RIGHT]
-
-        if name in cls.registered:
-            raise ValueError('Such operator already in use.')
-
-        cls.registered.add(name)
-        parser = lexeme(string(name))
-        prior = 2 * prior + assoc
-        if cls.opcombs[prior] is None:
-            cls.opcombs[prior] = parser
-        else:
-            cls.opcombs[prior] |= parser
-        cls.update_termcombs()
-
-    @classmethod
-    def register_builtin(cls):
-        cls.register(',', 5, cls.ASSOC_RIGHT)
-        cls.register(';', 3, cls.ASSOC_RIGHT)
-
-    def __build_ast__(exprs, ctor):
-        init, op = exprs[0], None
-        for i, exp in enumerate(exprs[1:]):
-            if i & 1:
-                init = ctor(init, exp, op)
-            else:
-                op = exp
-        return init
-
-    @classmethod
-    def build_expast(cls, assoc):
-        def helper(exprs):
-            assert len(exprs) > 0
-            def ctor(a, b, o): return Binop(a, o, b)
-            if assoc is cls.ASSOC_RIGHT:
-                exprs = reversed(exprs)
-                def ctor(a, b, o): return Binop(b, o, a)
-            return cls.__build_ast__(list(exprs), ctor)
-        return helper
-
-    @classmethod
-    def create_termcombs(cls):
-        cls.termcombs[-1] = lparen >> cls.expr << rparen | ident.parsecmap(
-            Variable)
-
-    @classmethod
-    def update_termcombs(cls):
-        for i in reversed(range(2 * cls.MAX_PRIOR)):
-            cls.termcombs[i] = separateWith(
-                cls.termcombs[i + 1], cls.opcombs[i], 1).parsecmap(cls.build_expast(i & 1))
+def separateWith(parser, delim, mint):
+    return separateMutableWith(parser, ParserWrapper(delim), mint)
 
 
-program = ignore >> optional(ExpressionParser.operator |
-                             ExpressionParser.expr) << ignore << eof()
+@generate
+def def_module():
+    '''Module definition'''
+    name = yield modulekw >> ident << dot
+    return name
+
+
+@generate
+def atom():
+    name = yield atom_head
+    body = yield atom_body
+    return Atom(name, body)
+
+
+CONS = 'cons'
+NIL = 'nil'
+
+
+@generate
+def array():
+    es = yield lbrak >> elems << rbrak
+    return ft.reduce(lambda x, y: Atom(CONS, [y, x]), reversed(es), Atom(NIL, []))
+
+
+subarray = atom | var | array
+headNtail = (atom | var) + (vdash >> var)
+elems = headNtail ^ (separateBy(subarray, comma, 0))
+
+atom_head = ident
+
+
+@generate
+def parenatom():
+    patom = yield lparen >> parenatom << rparen | atom | var
+    return patom
+
+
+null_args_atom = ident.parsecmap(lambda x: Atom(x, []))
+
+subatom = lparen >> parenatom << rparen | null_args_atom | var | array
+
+atom_body = many(subatom)
+
+
+@generate
+def def_type():
+    '''Type definition'''
+    yield typekw
+    name = yield ident
+    defin = yield subtype
+    yield dot
+    return TypeDecl(name, defin)
+
+
+@generate
+def subtype():
+    types = yield separateBy(type_part, arrow, 0).parsecmap(createTree(Arrow, 2, 1))
+    return types
+
+
+type_part = (atom | var | lparen >> subtype << rparen)
+
+
+@generate
+def def_rel():
+    '''Relation definition'''
+    head = yield rel_head
+    body = yield corkscrew >> expr << dot | dot.parsecmap(lambda x: None)
+    return Relation(head, body)
+
+
+rel_head = atom
+
+
+@generate
+def expr():
+    res = yield termsholder.exec()
+    return res
+
+
+class OperatorsHolder:
+    def __init__(self, max_prior):
+        self.max_prior = max_prior
+        self.registered = set()
+        self.operators = [ParserWrapper(None) for _ in range(2 * max_prior)]
+
+    def register(self, name, prior, assoc):
+        if name in self.registered:
+            raise ValueError('operator already in use')
+        if prior >= self.max_prior:
+            raise ValueError('too big operator priority')
+
+        self.registered.add(name)
+        self.operators[2 * prior + assoc] += lexeme(string(name))
+
+
+class TermsHolder:
+    def __init__(self, operators):
+        self.terms = [None for _ in range(len(operators))]
+        self.terms.append(lparen >> expr << rparen | atom | var)
+        for i in reversed(range(len(operators))):
+            self.terms[i] = separateMutableWith(
+                self.terms[i + 1], operators[i], 1).parsecmap(createTree(Binop, 3, i & 1))
+
+    def exec(self):
+        return self.terms[0]
+
+
+opsholder = OperatorsHolder(10)
+termsholder = TermsHolder(opsholder.operators)
+opsholder.register(',', 5, 1)
+opsholder.register(';', 4, 1)
+
+
+@generate
+def def_op():
+    ((name, prior), assoc) = yield (operatorkw >> opsymbols) + opprior + opassoc
+    body = yield corkscrew >> expr << dot | dot.parsecmap(lambda x: None)
+    opsholder.register(name, prior, 0 if assoc == 'L' else 1)
+    return Relation(f'{name} with priority={prior} associative={assoc}', body)
+
+
+@generate
+def program():
+    modulename = yield optional(def_module, '')
+    rest = yield many(def_op ^ def_type ^ def_rel)
+    return Module(modulename, rest)
 
 
 def parse(s):

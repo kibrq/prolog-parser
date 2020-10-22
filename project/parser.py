@@ -12,7 +12,7 @@ class ParserWrapper:
         if not self.val:
             self.val = parser
         else:
-            self.val = self.val | parser
+            self.val = self.val ^ parser
         return self
 
 

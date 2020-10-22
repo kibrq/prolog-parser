@@ -12,7 +12,8 @@ class ParserWrapper:
         if not self.val:
             self.val = parser
         else:
-            self.val = val | parser
+            self.val = self.val | parser
+        return self
 
 
 def createTree(ctor, argc, assoc):
@@ -84,7 +85,7 @@ semicol = lexeme(string(';'))
 
 opsymbols = lexeme(regex(r'[\,\;\-\+\*\&\^\%\$\#\@\!\?\>\<]+'))
 opprior = lexeme(regex(r'[0-9]+')).parsecmap(int)
-opassoc = lexeme(regex(r'[LR]'))
+opassoc = lexeme(regex(r'(L|R)'))
 
 
 def separateMutableBy(parser, wdelim, mint):
@@ -256,7 +257,7 @@ opsholder.register(';', 4, 1)
 def def_op():
     ((name, prior), assoc) = yield (operatorkw >> opsymbols) + opprior + opassoc
     body = yield corkscrew >> expr << dot | dot.parsecmap(lambda x: None)
-    opsholder.register(name, prior, 0 if assoc == 'L' else 1)
+    opsholder.register(name, prior, 1 if assoc == 'R' else 0)
     return Relation(f'{name} with priority={prior} associative={assoc}', body)
 
 

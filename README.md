@@ -22,3 +22,13 @@
 
 `pytest .`
 
+# project
+В папке project лежит парсер способный дополнительно распознавать кастомные операторы, вложенные комментарии и soft-keywords.
+
+Синтаксис для операторов
+
+`operator [operator_name] [operator_prior] [operator_assoc] (:- EXPR . | .)`
+
+- operator_name состоит из небукв, типа -+;,>< и тд
+- operator_prior число от 0 до 9
+- operator_assoc либо 'L' либо 'R'
